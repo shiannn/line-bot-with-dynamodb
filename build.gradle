@@ -37,6 +37,10 @@ dependencies {
 	compile group: 'com.github.derjust', name: 'spring-data-dynamodb', version: '5.0.3'
 	compile group: 'org.springframework.data', name: 'spring-data-commons', version: '2.0.9.RELEASE'
 
+	// https://mvnrepository.com/artifact/org.springframework/spring-jdbc
+	compile group: 'org.springframework', name: 'spring-jdbc', version: '3.1.0.RELEASE'
+
+
 	// https://mvnrepository.com/artifact/com.linecorp.bot/line-bot-api-client
 	compile group: 'com.linecorp.bot', name: 'line-bot-api-client', version: '3.3.1'
 	// https://mvnrepository.com/artifact/com.linecorp.bot/line-bot-spring-boot

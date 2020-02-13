@@ -107,6 +107,7 @@ public class KitchenSinkController {
     @Autowired
     private LineBlobClient lineBlobClient;
 
+    @Autowired
     private MessageRepository messageRepository;
 
     @Autowired
@@ -569,6 +570,15 @@ public class KitchenSinkController {
                            singletonList(new TextMessage("This message is send without a push notification")),
                            true);
                 break;
+            case "<list>":
+                Iterable<messageObject> messages = messageRepository.findAll();
+                long count = messageRepository.count();
+                System.out.println(count);
+                for(messageObject o:messages){
+                    System.out.println(o.getMessage());
+                }
+                
+                break;
             default:
                 log.info("Returns echo message {}: {}", replyToken, text);
                 this.replyText(
@@ -576,8 +586,8 @@ public class KitchenSinkController {
                         text
                 );
                 System.out.println(text);
-                messageObject Toput = new messageObject();
-                Toput.setMessage(text);
+                messageObject Toput = new messageObject(text);
+                //Toput.setMessage();
                 messageRepository.save(Toput);
                 break;
         }

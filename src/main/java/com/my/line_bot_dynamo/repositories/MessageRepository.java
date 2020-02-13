@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
 
 @EnableScan
 @EnableScanCount
-@Component
-public interface MessageRepository extends PagingAndSortingRepository<messageObject, String>{
-    Page<messageObject> findAllByMessage(String Message, Pageable pageable);
+@Repository
+public interface MessageRepository extends CrudRepository<messageObject, String>{
+    //Page<messageObject> findAllByMessage(String Message, Pageable pageable);
 }
