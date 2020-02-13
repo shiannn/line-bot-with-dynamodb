@@ -33,7 +33,7 @@ public class messageObject{
         this.id = id;
     }
 
-    @DynamoDBAttribute
+    @DynamoDBAttribute(attributeName = "message")
     public String getMessage(){
         return message;
     }

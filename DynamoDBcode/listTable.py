@@ -15,6 +15,6 @@ def scanTable(ddb, TableNames):
 if __name__ == '__main__':
     ddb_client = boto3.client('dynamodb', endpoint_url='http://localhost:8000')
     ddb_resource = boto3.resource('dynamodb', region_name='us-west-2', endpoint_url="http://localhost:8000")
-    #listTables(ddb)
     TableNames = 'MessageTable'
     scanTable(ddb_resource, TableNames)
+    #listTables(ddb_client)

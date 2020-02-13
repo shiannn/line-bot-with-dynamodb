@@ -572,8 +572,10 @@ public class KitchenSinkController {
             case "<list>":
                 Iterable<messageObject> messages = messageRepository.findAll();
                 for(messageObject o:messages){
-                    System.out.println(o);
+                    System.out.println(o.getMessage());
                 }
+                System.out.println('o');
+                break;
             default:
                 log.info("Returns echo message {}: {}", replyToken, text);
                 this.replyText(

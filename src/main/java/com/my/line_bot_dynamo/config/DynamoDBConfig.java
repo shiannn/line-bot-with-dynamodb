@@ -4,6 +4,8 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
 
 import org.socialsignin.spring.data.dynamodb.repository.config.EnableDynamoDBRepositories;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,9 +45,21 @@ public class DynamoDBConfig{
     public AWSCredentials amazonAWSCredentials() {
         return new BasicAWSCredentials(amazonAWSAccessKey, amazonAWSSecretKey);
     }
-
+/*
     @Bean(name = "mvcHandlerMappingIntrospector1")
     public HandlerMappingIntrospector mvcHandlerMappingIntrospector(){
         return new HandlerMappingIntrospector(context);
+    }
+*/
+    @Bean
+    public DynamoDBMapper dynamoDBMapper(DynamoDBMapperConfig dynamoDBMapperConfig, AmazonDynamoDB amazonDynamoDB) {
+        return new DynamoDBMapper(amazonDynamoDB, dynamoDBMapperConfig);
+    }
+
+    @Bean
+    public DynamoDBMapperConfig dynamoDBMapperConfig() {
+        DynamoDBMapperConfig mapperConfig = new DynamoDBMapperConfig.Builder().withTableNameOverride(DynamoDBMapperConfig.TableNameOverride.withTableNamePrefix("dev"))
+                .build();
+        return mapperConfig;
     }
 }
