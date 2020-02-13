@@ -42,6 +42,7 @@ import com.google.common.io.ByteStreams;
 import com.linecorp.bot.client.LineBlobClient;
 import com.linecorp.bot.client.LineMessagingClient;
 import com.linecorp.bot.client.MessageContentResponse;
+import com.linecorp.bot.model.PushMessage;
 import com.linecorp.bot.model.ReplyMessage;
 import com.linecorp.bot.model.action.DatetimePickerAction;
 import com.linecorp.bot.model.action.MessageAction;
@@ -221,9 +222,10 @@ public class KitchenSinkController {
     @EventMapping
     public void handleFileMessageEvent(MessageEvent<FileMessageContent> event) {
         this.reply(event.getReplyToken(),
-                   new TextMessage(String.format("Received '%s'(%d bytes)",
+                   new TextMessage(String.format("Received '%s'(%d bytes) (id '%s')",
                                                  event.getMessage().getFileName(),
-                                                 event.getMessage().getFileSize())));
+                                                 event.getMessage().getFileSize(),
+                                                 event.getMessage().getId())));
     }
 
     @EventMapping
@@ -319,6 +321,7 @@ public class KitchenSinkController {
             throw new RuntimeException(e);
         }
         //messageConsumer.accept(response);
+        //System.out.println(response);
     }
 
     private void handleSticker(String replyToken, StickerMessageContent content) {
@@ -569,14 +572,62 @@ public class KitchenSinkController {
                            singletonList(new TextMessage("This message is send without a push notification")),
                            true);
                 break;
-            case "<list>":
+            case "getfile":{
+                System.out.println("you getfile!!");
+                final MessageContentResponse messageContentResponse;
+                String messageId = "11422732077604";
+                try {
+                    messageContentResponse = lineBlobClient.getMessageContent(messageId).get();
+                    try{
+                        //Files.copy(messageContentResponse.getStream(), Files.createTempFile("foofoo", ".ppt"));
+                        System.out.println(messageContentResponse);
+                    } catch (Exception e){
+                        System.out.println(e);
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                break;
+            }
+            case "count":{
+                final String userId = event.getSource().getUserId();
+                long count = messageRepository.count();
+                String s=String.valueOf(count);
+                final TextMessage textMessage = new TextMessage(s);
+                final PushMessage pushMessage = new PushMessage(
+                    userId,
+                    textMessage);
+                final BotApiResponse botApiResponse;
+                try {
+                    botApiResponse = lineMessagingClient.pushMessage(pushMessage).get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                break;
+            }
+            case "<list>":{
+                final String userId = event.getSource().getUserId();
                 Iterable<messageObject> messages = messageRepository.findAll();
                 for(messageObject o:messages){
                     System.out.println(o.getMessage());
+                    final TextMessage textMessage = new TextMessage(o.getMessage());
+                    final PushMessage pushMessage = new PushMessage(
+                        userId,
+                        textMessage);
+                    final BotApiResponse botApiResponse;
+                    try {
+                        botApiResponse = lineMessagingClient.pushMessage(pushMessage).get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                        return;
+                    }
                 }
-                System.out.println('o');
+            
                 break;
-            default:
+            }
+            default:{
                 log.info("Returns echo message {}: {}", replyToken, text);
                 this.replyText(
                         replyToken,
@@ -587,6 +638,7 @@ public class KitchenSinkController {
                 //Toput.setMessage(text);
                 messageRepository.save(Toput);
                 break;
+            }
         }
     }
 
