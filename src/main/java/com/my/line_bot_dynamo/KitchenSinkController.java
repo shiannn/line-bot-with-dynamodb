@@ -107,7 +107,6 @@ public class KitchenSinkController {
     @Autowired
     private LineBlobClient lineBlobClient;
 
-    @Autowired
     private MessageRepository messageRepository;
 
     @Autowired
@@ -572,13 +571,9 @@ public class KitchenSinkController {
                 break;
             case "<list>":
                 Iterable<messageObject> messages = messageRepository.findAll();
-                long count = messageRepository.count();
-                System.out.println(count);
                 for(messageObject o:messages){
-                    System.out.println(o.getMessage());
+                    System.out.println(o);
                 }
-                
-                break;
             default:
                 log.info("Returns echo message {}: {}", replyToken, text);
                 this.replyText(
@@ -587,7 +582,7 @@ public class KitchenSinkController {
                 );
                 System.out.println(text);
                 messageObject Toput = new messageObject(text);
-                //Toput.setMessage();
+                //Toput.setMessage(text);
                 messageRepository.save(Toput);
                 break;
         }

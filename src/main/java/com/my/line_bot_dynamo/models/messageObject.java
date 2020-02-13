@@ -15,6 +15,9 @@ public class messageObject{
     @NotEmpty
     private String message;
 
+    public messageObject() {
+    }
+
     public messageObject(String message) {
         //this.id = id;
         this.message = message;
