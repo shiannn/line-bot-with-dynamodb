@@ -17,12 +17,14 @@
 package com.my.line_bot_dynamo;
 import static java.util.Collections.singletonList;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -576,10 +578,11 @@ public class KitchenSinkController {
                 System.out.println("you getfile!!");
                 final MessageContentResponse messageContentResponse;
                 String messageId = "11422732077604";
+                String path = "./LineFile/";
                 try {
                     messageContentResponse = lineBlobClient.getMessageContent(messageId).get();
                     try{
-                        //Files.copy(messageContentResponse.getStream(), Files.createTempFile("foofoo", ".ppt"));
+                        Files.copy(messageContentResponse.getStream(), (new File(path + "abc.pdf")).toPath(), StandardCopyOption.REPLACE_EXISTING);
                         System.out.println(messageContentResponse);
                     } catch (Exception e){
                         System.out.println(e);

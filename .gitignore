@@ -33,3 +33,6 @@ out/
 
 ### log ###
 error.log
+
+### LineFile ###
+LineFile/
