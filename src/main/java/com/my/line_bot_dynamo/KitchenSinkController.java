@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -121,7 +123,12 @@ public class KitchenSinkController {
     @EventMapping
     public void handleTextMessageEvent(MessageEvent<TextMessageContent> event) throws Exception {
         TextMessageContent message = event.getMessage();
-        handleTextContent(event.getReplyToken(), event, message);
+        if(message.getText().substring(0,2).equals(">>")){
+            handleCommand(event.getReplyToken(), event, message);
+        }
+        else{
+            handleTextContent(event.getReplyToken(), event, message);
+        }
     }
 
     @EventMapping
@@ -332,6 +339,68 @@ public class KitchenSinkController {
         reply(replyToken, new StickerMessage(
                 content.getPackageId(), content.getStickerId())
         );
+    }
+
+    private void handleCommand(String replyToken, Event event, TextMessageContent content){
+        //split the command part
+        String toProcess = content.getText();
+    
+        String[] command_Meta = toProcess.split(" ", 2);
+        String command = command_Meta[0].substring(2);
+        String Meta = command_Meta[1];
+        System.out.println("command "+ command);
+        System.out.println("Meta "+ Meta);
+        switch(command){
+            case "searchText":{
+                this.replyText(
+                        replyToken,
+                        "Searching..."
+                );
+                final String userId = event.getSource().getUserId();
+                Iterable<messageObject> messages = messageRepository.findAll();
+                for(messageObject o:messages){
+                    System.out.println(o.getMessage());
+                    if(o.getMessage().contains(Meta)){
+                        final TextMessage textMessage = new TextMessage(o.getMessage());
+                        final PushMessage pushMessage = new PushMessage(
+                            userId,
+                            textMessage);
+                        final BotApiResponse botApiResponse;
+                        try {
+                            botApiResponse = lineMessagingClient.pushMessage(pushMessage).get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            e.printStackTrace();
+                            return;
+                        }
+                    }
+                }
+                break;
+            }
+            case "searchURL":{
+                Iterable<messageObject> messages = messageRepository.findAll();
+                for(messageObject o:messages){
+                    String message = o.getMessage();
+                    System.out.println(message);
+                    try{
+                        URL url = new URL(message);
+                        URLConnection conn = url.openConnection();
+                        conn.connect();
+                        System.out.println("is url");
+                    }catch(Exception e){
+                        System.out.println("not url");
+                    }
+                }
+                break;
+            }
+            default:{
+                System.out.println("Illegal Command!!!");
+                this.replyText(
+                        replyToken,
+                        "Illegal Command!!!"
+                );
+                break;
+            }
+        }
     }
 
     private void handleTextContent(String replyToken, Event event, TextMessageContent content)
