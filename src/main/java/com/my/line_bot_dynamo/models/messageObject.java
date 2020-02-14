@@ -15,12 +15,16 @@ public class messageObject{
     @NotEmpty
     private String message;
 
+    @NotEmpty
+    private String messageId;
+
     public messageObject() {
     }
 
-    public messageObject(String message) {
+    public messageObject(String message, String messageId) {
         //this.id = id;
         this.message = message;
+        this.messageId = messageId;
     }
 
     @DynamoDBHashKey(attributeName = "id")
@@ -40,5 +44,14 @@ public class messageObject{
 
     public void setMessage(String message){
         this.message = message;
+    }
+
+    @DynamoDBAttribute(attributeName = "messageId")
+    public String getMessageId(){
+        return messageId;
+    }
+
+    public void setMessageId(String messageId){
+        this.messageId = messageId;
     }
 }

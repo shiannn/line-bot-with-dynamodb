@@ -30,6 +30,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
@@ -574,6 +575,14 @@ public class KitchenSinkController {
                            singletonList(new TextMessage("This message is send without a push notification")),
                            true);
                 break;
+            case "getById":{
+                String messageId = "11427082127165";
+                Optional<messageObject> messageOpt = messageRepository.findByMessageId(messageId);
+                messageObject message = messageOpt.get();
+                System.out.println(message.getMessage());
+                System.out.println(message.getid());
+                break;
+            }
             case "getfile":{
                 System.out.println("you getfile!!");
                 final MessageContentResponse messageContentResponse;
@@ -631,14 +640,15 @@ public class KitchenSinkController {
                 break;
             }
             default:{
+                final String messageId = content.getId();
                 log.info("Returns echo message {}: {}", replyToken, text);
                 this.replyText(
                         replyToken,
                         text
                 );
+                System.out.println(messageId);
                 System.out.println(text);
-                messageObject Toput = new messageObject(text);
-                //Toput.setMessage(text);
+                messageObject Toput = new messageObject(text, messageId);
                 messageRepository.save(Toput);
                 break;
             }

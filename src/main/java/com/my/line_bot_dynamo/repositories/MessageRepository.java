@@ -1,6 +1,6 @@
 package com.my.line_bot_dynamo.repositories;
 
-import java.util.List;
+import java.util.Optional;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.my.line_bot_dynamo.models.messageObject;
@@ -20,8 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 @EnableScan
 @EnableScanCount
 @Repository
-public interface MessageRepository extends CrudRepository<messageObject, String>{
-    //Page<messageObject> findAllByMessage(String Message, Pageable pageable);
+public interface MessageRepository extends CrudRepository<messageObject, String> {
+    // Page<messageObject> findAllByMessage(String Message, Pageable pageable);
+    Optional<messageObject> findByMessageId(String messageId);
 }
 
 /*
