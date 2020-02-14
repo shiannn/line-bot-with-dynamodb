@@ -17,8 +17,11 @@
 package com.my.line_bot_dynamo;
 import static java.util.Collections.singletonList;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
@@ -384,8 +387,24 @@ public class KitchenSinkController {
                     try{
                         URL url = new URL(message);
                         URLConnection conn = url.openConnection();
+                        conn.setRequestProperty("User-Agent", "BBot/1.0");
+                        conn.setRequestProperty("Accept-Charset", "UTF-8");
                         conn.connect();
                         System.out.println("is url");
+                        try{
+                            InputStream is = conn.getInputStream();
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                            String line;
+                            String html = "";
+                            while((line = reader.readLine())!=null){
+                                html += line + "\n";
+                            }
+                            html.trim();
+                            System.out.println(html);
+                        }
+                        catch(Exception e){
+                            System.out.println(e);
+                        }
                     }catch(Exception e){
                         System.out.println("not url");
                     }
