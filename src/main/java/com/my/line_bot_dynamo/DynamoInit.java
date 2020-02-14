@@ -12,6 +12,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 import com.my.line_bot_dynamo.models.messageObject;
+import com.my.line_bot_dynamo.models.ParseInfo;
 
 @Component
 public class DynamoInit implements ApplicationListener<ContextRefreshedEvent>{
@@ -29,5 +30,11 @@ public class DynamoInit implements ApplicationListener<ContextRefreshedEvent>{
         
         tableRequest.setProvisionedThroughput(new ProvisionedThroughput(1L,1L));
         TableUtils.createTableIfNotExists(amazonDynamoDB, tableRequest);
+
+        CreateTableRequest parseInfoRequest = new DynamoDBMapper(amazonDynamoDB)
+            .generateCreateTableRequest(ParseInfo.class);
+        
+        parseInfoRequest.setProvisionedThroughput(new ProvisionedThroughput(1L,1L));
+        TableUtils.createTableIfNotExists(amazonDynamoDB, parseInfoRequest);
     }
 }

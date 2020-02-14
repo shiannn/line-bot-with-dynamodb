@@ -101,7 +101,9 @@ import com.linecorp.bot.model.response.BotApiResponse;
 import com.linecorp.bot.spring.boot.annotation.EventMapping;
 import com.linecorp.bot.spring.boot.annotation.LineMessageHandler;
 import com.my.line_bot_dynamo.models.messageObject;
+import com.my.line_bot_dynamo.models.ParseInfo;
 import com.my.line_bot_dynamo.repositories.MessageRepository;
+import com.my.line_bot_dynamo.repositories.ParseInfoRepository;
 
 import lombok.NonNull;
 import lombok.Value;
@@ -116,7 +118,11 @@ public class KitchenSinkController {
     @Autowired
     private LineBlobClient lineBlobClient;
 
+    @Autowired
     private MessageRepository messageRepository;
+
+    @Autowired
+    private ParseInfoRepository parseInfoRepository;
 
     @Autowired
     public KitchenSinkController(MessageRepository messageRepository){
@@ -357,7 +363,7 @@ public class KitchenSinkController {
             case "searchText":{
                 this.replyText(
                         replyToken,
-                        "Searching..."
+                        "SearchingText..."
                 );
                 final String userId = event.getSource().getUserId();
                 Iterable<messageObject> messages = messageRepository.findAll();
@@ -377,9 +383,23 @@ public class KitchenSinkController {
                         }
                     }
                 }
+                final TextMessage textMessage = new TextMessage("Finish!");
+                final PushMessage pushMessage = new PushMessage(
+                            userId,
+                            textMessage);
+                try {
+                    lineMessagingClient.pushMessage(pushMessage).get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                    return;
+                }
                 break;
             }
             case "searchURL":{
+                this.replyText(
+                        replyToken,
+                        "SearchingURL..."
+                );
                 Iterable<messageObject> messages = messageRepository.findAll();
                 for(messageObject o:messages){
                     String message = o.getMessage();
@@ -391,6 +411,7 @@ public class KitchenSinkController {
                         conn.setRequestProperty("Accept-Charset", "UTF-8");
                         conn.connect();
                         System.out.println("is url");
+                        
                         try{
                             InputStream is = conn.getInputStream();
                             BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -401,13 +422,27 @@ public class KitchenSinkController {
                             }
                             html.trim();
                             System.out.println(html);
-                        }
-                        catch(Exception e){
+
+                            //ParseInfo parseInfo =  new ParseInfo(message, "sample content");
+                            ParseInfo parseInfo =  new ParseInfo(message, html);
+                            parseInfoRepository.save(parseInfo);
+                        }catch(Exception e){
                             System.out.println(e);
                         }
                     }catch(Exception e){
                         System.out.println("not url");
                     }
+                }
+                final String userId = event.getSource().getUserId();
+                final TextMessage textMessage = new TextMessage("Finish!");
+                final PushMessage pushMessage = new PushMessage(
+                            userId,
+                            textMessage);
+                try {
+                    lineMessagingClient.pushMessage(pushMessage).get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                    return;
                 }
                 break;
             }
