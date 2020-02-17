@@ -106,6 +106,7 @@ import com.linecorp.bot.spring.boot.annotation.LineMessageHandler;
 import com.my.line_bot_dynamo.models.messageObject;
 import com.my.line_bot_dynamo.ParseUtil.parserForUrl;
 import com.my.line_bot_dynamo.ParseUtil.urlValid;
+import com.my.line_bot_dynamo.models.Meta;
 import com.my.line_bot_dynamo.models.ParseInfo;
 import com.my.line_bot_dynamo.repositories.MessageRepository;
 import com.my.line_bot_dynamo.repositories.ParseInfoRepository;
@@ -412,7 +413,7 @@ public class KitchenSinkController {
                     if(urlValid.isValidURL(message)==true){
                         System.out.println("is url, start parse");
                         //parse
-                        ParseInfo parseInfo = parserForUrl.parseUrl(message);
+                        ParseInfo parseInfo = parserForUrl.parseUrlRaw(message);
                         //save to DB
                         parseInfoRepository.save(parseInfo);
                     }
@@ -764,8 +765,15 @@ public class KitchenSinkController {
                     URL url = new URL(text);
                     URLConnection conn = url.openConnection();
                     System.out.println("is url, start parse");
-                    //parse
-                    ParseInfo parseInfo = parserForUrl.parseUrl(text);
+                    //parse raw data
+                    ParseInfo parseInfo = parserForUrl.parseUrlRaw(text);
+                    //parse meta data
+                    //String meta = parserForUrl.parseUrlTag(text);
+                    Meta meta = parserForUrl.parseUrlTag(text);
+                    //System.out.println("meta\n"+meta);
+
+                    parseInfo.setMetaContent(meta.getContent());
+                    parseInfo.setMetaName(meta.getName());
                     //save to DB
                     parseInfoRepository.save(parseInfo);
                 }

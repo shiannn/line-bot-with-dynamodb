@@ -12,13 +12,18 @@ public class ParseInfo{
     private String url;
     private String content;
 
+    private String metaContent;
+    private String metaName;
+
     public ParseInfo(){
 
     }
 
-    public ParseInfo(String url, String content){
+    public ParseInfo(String url, String content, String metaContent, String metaName){
         this.url = url;
         this.content = content;
+        this.metaContent = metaContent;
+        this.metaName = metaName;
     }
 
     @DynamoDBHashKey(attributeName = "id")
@@ -48,4 +53,23 @@ public class ParseInfo{
     public void setContent(String content){
         this.content = content;
     }
+
+    @DynamoDBAttribute(attributeName = "metaContent")
+    public String getMeta(){
+        return metaContent;
+    }
+
+    public void setMetaContent(String metaContent){
+        this.metaContent = metaContent;
+    }
+
+    @DynamoDBAttribute(attributeName = "metaName")
+    public String getMetaName() {
+        return this.metaName;
+    }
+
+    public void setMetaName(String metaName) {
+        this.metaName = metaName;
+    }
+
 }
