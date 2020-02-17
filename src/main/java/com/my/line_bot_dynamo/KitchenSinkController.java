@@ -37,11 +37,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.hibernate.validator.internal.constraintvalidators.hv.URLValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -97,10 +99,13 @@ import com.linecorp.bot.model.message.template.CarouselTemplate;
 import com.linecorp.bot.model.message.template.ConfirmTemplate;
 import com.linecorp.bot.model.message.template.ImageCarouselColumn;
 import com.linecorp.bot.model.message.template.ImageCarouselTemplate;
+import com.linecorp.bot.model.profile.UserProfileResponse;
 import com.linecorp.bot.model.response.BotApiResponse;
 import com.linecorp.bot.spring.boot.annotation.EventMapping;
 import com.linecorp.bot.spring.boot.annotation.LineMessageHandler;
 import com.my.line_bot_dynamo.models.messageObject;
+import com.my.line_bot_dynamo.ParseUtil.parserForUrl;
+import com.my.line_bot_dynamo.ParseUtil.urlValid;
 import com.my.line_bot_dynamo.models.ParseInfo;
 import com.my.line_bot_dynamo.repositories.MessageRepository;
 import com.my.line_bot_dynamo.repositories.ParseInfoRepository;
@@ -404,33 +409,16 @@ public class KitchenSinkController {
                 for(messageObject o:messages){
                     String message = o.getMessage();
                     System.out.println(message);
-                    try{
-                        URL url = new URL(message);
-                        URLConnection conn = url.openConnection();
-                        conn.setRequestProperty("User-Agent", "BBot/1.0");
-                        conn.setRequestProperty("Accept-Charset", "UTF-8");
-                        conn.connect();
-                        System.out.println("is url");
-                        
-                        try{
-                            InputStream is = conn.getInputStream();
-                            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-                            String line;
-                            String html = "";
-                            while((line = reader.readLine())!=null){
-                                html += line + "\n";
-                            }
-                            html.trim();
-                            System.out.println(html);
-
-                            //ParseInfo parseInfo =  new ParseInfo(message, "sample content");
-                            ParseInfo parseInfo =  new ParseInfo(message, html);
-                            parseInfoRepository.save(parseInfo);
-                        }catch(Exception e){
-                            System.out.println(e);
-                        }
-                    }catch(Exception e){
-                        System.out.println("not url");
+                    if(urlValid.isValidURL(message)==true){
+                        System.out.println("is url, start parse");
+                        //parse
+                        ParseInfo parseInfo = parserForUrl.parseUrl(message);
+                        //save to DB
+                        parseInfoRepository.save(parseInfo);
+                    }
+                    else{
+                        System.out.println("not valid url");
+                        System.out.println("normal message");
                     }
                 }
                 final String userId = event.getSource().getUserId();
@@ -460,6 +448,10 @@ public class KitchenSinkController {
     private void handleTextContent(String replyToken, Event event, TextMessageContent content)
             throws Exception {
         System.out.println("It is a text\n");
+        final String SenderId = event.getSource().getSenderId();
+        final String UserId = event.getSource().getUserId();
+        System.out.println("SenderId"+SenderId);
+        System.out.println("UserId"+UserId);
         final String text = content.getText();
 
         log.info("Got text message from replyToken:{}: text:{}", replyToken, text);
@@ -746,12 +738,13 @@ public class KitchenSinkController {
                 final String userId = event.getSource().getUserId();
                 Iterable<messageObject> messages = messageRepository.findAll();
                 for(messageObject o:messages){
-                    System.out.println(o.getMessage());
+                    System.out.println(o.getsenderDisplayName()+": "+o.getMessage());
                     final TextMessage textMessage = new TextMessage(o.getMessage());
                     final PushMessage pushMessage = new PushMessage(
                         userId,
                         textMessage);
                     final BotApiResponse botApiResponse;
+                    //use PushMessage(userId) to decide which user to give information
                     try {
                         botApiResponse = lineMessagingClient.pushMessage(pushMessage).get();
                     } catch (InterruptedException | ExecutionException e) {
@@ -763,15 +756,34 @@ public class KitchenSinkController {
                 break;
             }
             default:{
+                //if it is an url, parse it
+                final UserProfileResponse userProfileResponse = lineMessagingClient.getProfile(UserId).get();
+                //System.out.println(userProfileResponse);
+                //System.out.println(userProfileResponse.getDisplayName());
+                if(urlValid.isValidURL(text)==true){
+                    URL url = new URL(text);
+                    URLConnection conn = url.openConnection();
+                    System.out.println("is url, start parse");
+                    //parse
+                    ParseInfo parseInfo = parserForUrl.parseUrl(text);
+                    //save to DB
+                    parseInfoRepository.save(parseInfo);
+                }
+                else{
+                    System.out.println("not valid url");
+                    System.out.println("normal message");
+                }
+                //No matter whether it is an url, save it into messageRepo
                 final String messageId = content.getId();
                 log.info("Returns echo message {}: {}", replyToken, text);
                 this.replyText(
                         replyToken,
                         text
                 );
-                System.out.println(messageId);
+                final String senderDisplayName = userProfileResponse.getDisplayName();
+                System.out.println(senderDisplayName);
                 System.out.println(text);
-                messageObject Toput = new messageObject(text, messageId);
+                messageObject Toput = new messageObject(text, messageId, senderDisplayName);
                 messageRepository.save(Toput);
                 break;
             }

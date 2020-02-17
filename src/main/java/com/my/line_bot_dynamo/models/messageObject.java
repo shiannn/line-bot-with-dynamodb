@@ -18,13 +18,17 @@ public class messageObject{
     @NotEmpty
     private String messageId;
 
+    @NotEmpty
+    private String senderDisplayName;
+
     public messageObject() {
     }
 
-    public messageObject(String message, String messageId) {
+    public messageObject(String message, String messageId, String senderDisplayName) {
         //this.id = id;
         this.message = message;
         this.messageId = messageId;
+        this.senderDisplayName = senderDisplayName;
     }
 
     @DynamoDBHashKey(attributeName = "id")
@@ -53,5 +57,14 @@ public class messageObject{
 
     public void setMessageId(String messageId){
         this.messageId = messageId;
+    }
+
+    @DynamoDBAttribute(attributeName = "senderDisplayName")
+    public String getsenderDisplayName(){
+        return senderDisplayName;
+    }
+
+    public void setsenderDisplayName(String senderDisplayName){
+        this.senderDisplayName = senderDisplayName;
     }
 }
